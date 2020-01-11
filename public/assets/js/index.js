@@ -127,9 +127,11 @@ var renderNoteList = function(notes) {
 
 // Gets notes from the db and renders them to the sidebar
 var getAndRenderNotes = function() {
-  return getNotes().then(function(data) {
+  return getNotes()
+  .then(function(data) {
     renderNoteList(data);
-  });
+  })
+  .catch(err => console.log(err));
 };
 
 $saveNoteBtn.on("click", handleNoteSave);
