@@ -31,42 +31,59 @@ app.get("/api/notes", (req, res) =>{
     })
 });
 
-app.post("/api/notes", async (req, res) =>{
-    try {
+app.post("/api/notes", (req, res) =>{
+   
         let newNote = req.body;
 
-        let data = await readFileAsync("./db/db.json", "utf8");
-        if (data){
-            data = JSON.parse(data);
+        fs.readFile("./db/db.json", "utf8", function(err, data) {
+            if (err) {
+                newNote.id = 1;
 
-            const lastID = data[data.length -1].id;
+                fs.writeFile("./db/db.json", JSON.stringify([newNote]), function(err) {
+                    if (err) throw err;
+                })
+
+            } else {
+                
+                const noteData = JSON.parse(data);
+                let lastID;
+                if(noteData.length===0){
+                    lastID =0;
+                }
+                else {
+                    
+                    lastID = noteData[noteData.length -1].id ;
+                }
+        
+                newNote.id = lastID +1;
+                noteData.push(newNote);
+
+                fs.writeFile("./db/db.json", JSON.stringify(noteData), function(err) {
+                    if (err) throw err;
+                })
+            }
     
-            newNote.id = lastID +1;
-        } else {
-            newNote.id = 1;
-        };
-
-
-        console.log(newNote)
-
-        data.push(newNote);
-        await writeFileAsync("./db/db.json", JSON.stringify(data));
-        res.json(req.body);
-    } 
-    catch(err) {
-        console.log(err);
-    }
+            res.json(req.body);
+        })
 });
 
 app.delete("/api/notes/:id", async (req, res) =>{
     try {
         let id = req.params.id;
-        console.log("id: ", id)
+     
         let data = await readFileAsync("./db/db.json", "utf8");
         data = JSON.parse(data);
-        data.push(req.body);
+
+        for (let i = 0; i < data.length; i++) {
+        
+            if (id == data[i].id) {
+                data.splice(i, 1)
+                console.log(data)
+            }
+        }
+
         await writeFileAsync("./db/db.json", JSON.stringify(data));
-        res.json(req.body);
+        res.send('DELETED!!')
     } 
     catch(err) {
         console.log(err);
